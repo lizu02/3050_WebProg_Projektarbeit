@@ -74,6 +74,13 @@ def read_root():
 def get_preview():
     """Gibt die ersten 5 Zeilen zurück (zum Testen der Datenstruktur)."""
     if df is not None:
-        # [cite_start]Wir geben nur wenig Daten zurück, wie gefordert [cite: 44]
-        return df.head(5).to_dict(orient="records")
+        # 1. Wir nehmen die ersten 5 Zeilen
+        preview_data = df.head(5)
+        
+        # 2. WICHTIG: NaN (fehlende Werte) durch None ersetzen
+        # JSON kann mit 'NaN' nicht umgehen, aber mit 'null' (was Python None ist).
+        # Dieser Befehl sagt: "Wo Daten sind, lass sie. Wo NaN ist, schreib None."
+        preview_data = preview_data.where(pd.notnull(preview_data), None)
+        
+        return preview_data.to_dict(orient="records")
     return {"error": "Daten nicht verfügbar"}
