@@ -5,25 +5,19 @@ import os
 from contextlib import asynccontextmanager
 
 # --- KONFIGURATION ---
-# Pfad zur CSV-Datei (muss im gleichen Ordner liegen)
 CSV_DATEI = "Gesamtdatensatz.csv"
-
-# Globale Variable für den DataFrame
 df = None
 
-# --- LIFECYCLE (STARTUP LOGIK) ---
-# Diese Funktion wird automatisch ausgeführt, wenn du 'fastapi dev main.py' eingibst.
+# --- LIFECYCLE (STARTUP) ---
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     global df
     print("🔄 [Startup] Fahre Backend hoch...")
     
-    # Prüfen, ob die Datei existiert
     if os.path.exists(CSV_DATEI):
         print(f"📂 [Loading] Lese '{CSV_DATEI}' ein... (Das kann kurz dauern)")
         try:
-            # [cite_start]Daten in den Arbeitsspeicher laden [cite: 43]
-            # parse_dates sorgt dafür, dass 'timestamp' sofort als echtes Datum verstanden wird
+            # Daten laden
             df = pd.read_csv(CSV_DATEI, parse_dates=['timestamp'])
             
             print("✅ [Success] Daten erfolgreich geladen!")
@@ -34,22 +28,16 @@ async def lifespan(app: FastAPI):
             print(f"❌ [Error] Fehler beim Lesen der CSV: {e}")
     else:
         print(f"⚠️ [Warning] Datei '{CSV_DATEI}' nicht gefunden!")
-        print("   Bitte lege die CSV-Datei in denselben Ordner wie diese main.py.")
     
-    yield  # Hier läuft die App und wartet auf Anfragen...
-    
+    yield
     print("🛑 [Shutdown] Backend wird beendet.")
-    # Hier könnten wir Speicher bereinigen, falls nötig.
 
-# --- APP DEFINITION ---
-# Das 'lifespan'-Argument verbindet unsere Lade-Logik mit der App
 app = FastAPI(lifespan=lifespan)
 
-# --- CORS (WICHTIG FÜR FRONTEND) ---
-# Erlaubt deinem React-Frontend (meist Port 3000) den Zugriff
+# --- CORS ---
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Erlaubt alle Quellen (für Entwicklung ok)
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -59,28 +47,26 @@ app.add_middleware(
 
 @app.get("/")
 def read_root():
-    """Startseite: Zeigt Status und Info zum Datensatz."""
     if df is not None:
         return {
             "status": "online",
-            "message": "Backend läuft mit fastapi dev!",
             "total_records": len(df),
-            # Zeigt die Spaltennamen, damit ihr wisst, wie ihr filtern könnt
-            "columns": list(df.columns) 
+            "columns": list(df.columns)
         }
     return {"status": "error", "message": "Keine Daten geladen."}
 
 @app.get("/preview")
 def get_preview():
-    """Gibt die ersten 5 Zeilen zurück (zum Testen der Datenstruktur)."""
+    """Gibt die ersten 5 Zeilen zurück und behandelt NaN-Werte."""
     if df is not None:
-        # 1. Wir nehmen die ersten 5 Zeilen
-        preview_data = df.head(5)
+        # 1. Wir nehmen eine Kopie der ersten 5 Zeilen
+        preview_df = df.head(5).copy()
         
-        # 2. WICHTIG: NaN (fehlende Werte) durch None ersetzen
-        # JSON kann mit 'NaN' nicht umgehen, aber mit 'null' (was Python None ist).
-        # Dieser Befehl sagt: "Wo Daten sind, lass sie. Wo NaN ist, schreib None."
-        preview_data = preview_data.where(pd.notnull(preview_data), None)
+        # 2. DER FIX: Wir ersetzen NaN durch None (was zu JSON 'null' wird)
+        # .astype(object) sorgt dafür, dass wir 'None' auch in Zahlen-Spalten schreiben dürfen
+        # .where(pd.notnull(preview_df), None) behält Werte, ersetzt NaNs mit None
+        preview_df = preview_df.astype(object).where(pd.notnull(preview_df), None)
         
-        return preview_data.to_dict(orient="records")
+        return preview_df.to_dict(orient="records")
+        
     return {"error": "Daten nicht verfügbar"}
