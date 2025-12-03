@@ -1,106 +1,126 @@
-/* Grundlayout */
-.app {
+/* 1. Haupt-Grid-Container für das gesamte Layout (App.jsx) */
+.App {
   display: grid;
-  grid-template-rows: 60px 1fr 40px; /* Header / Content / Footer */
-  height: 100vh;
-  background: #0b0f14;
-  color: #fff;
-  font-family: Arial, sans-serif;
+  /* Definiert die Bereiche: Header, Main/Sidebar, Footer */
+  grid-template-areas:
+    "header"
+    "main-content"
+    "footer";
+  grid-template-rows: 60px 1fr 40px;
+  height: 100%;
 }
 
-/* Header & Footer */
-.header,
-.footer {
-  background: #121821;
+/* 2. Grid für den Hauptinhaltsbereich (MainArea + Sidebar) */
+.main-content-wrapper {
+  display: grid;
+  grid-area: main-content;
+  /* Definiert die Spalten: MainArea (75%), Sidebar (25%) */
+  grid-template-areas: "main sidebar";
+  grid-template-columns: 3fr 1fr;
+  overflow: hidden;
+}
+
+/* ----- Komponenten-Styling ----- */
+
+/* Header (Blau) */
+.header-container {
+  grid-area: header;
+  background-color: #4285f4; /* Helles Blau für Header */
+  padding: 0 20px;
   display: flex;
   align-items: center;
-  padding: 0 16px;
+  border-bottom: none; /* Rahmen entfernt */
+  color: white; /* Weiße Schrift im blauen Header */
+}
+
+.header-title {
+  font-size: 1.5em;
   font-weight: bold;
 }
-.footer {
-  font-size: 0.9rem;
-  color: #aaa;
+
+/* Sidebar (Dunkelgrau) */
+.sidebar-container {
+  grid-area: sidebar;
+  background-color: #333333; /* Dunkelgrau für Sidebar */
+  padding: 15px;
+  border-left: none; /* Rahmen entfernt */
+  overflow-y: auto;
 }
 
-/* Content: Main + Sidebar */
-.content {
+/* Sidebar Sektionen (Innenboxen der Filter) */
+.sidebar-section {
+  margin-bottom: 20px;
+  padding: 15px;
+  border: 1px solid #555555; /* Leichter grauer Rahmen für innere Boxen */
+  border-radius: 5px;
+}
+
+/* MainArea (Schwarz - wird vom body-Hintergrund übernommen) */
+.mainarea-container {
+  grid-area: main;
   display: grid;
-  grid-template-columns: 2fr 1fr; /* Main links, Sidebar rechts */
-  gap: 16px;
-  padding: 16px;
+  /* Aufteilung in Diagramm (oben) und Karte (unten) */
+  grid-template-areas:
+    "diagramm"
+    "karte";
+  grid-template-rows: 1fr 1fr;
+  padding: 15px;
+  gap: 15px;
 }
 
-/* Panels */
-.panel {
-  background: #121821;
-  border: 2px solid #2bc48a;
+/* Diagramm- und Karten-Boxen */
+.diagramm-box,
+.karte-box {
+  background-color: #222222; /* Sehr dunkles Grau für die inneren Boxen */
+  border: none; /* Rahmen entfernt */
   border-radius: 8px;
-  padding: 12px;
-}
-
-.panel-title {
-  display: flex;
-  justify-content: space-between;
-  margin-bottom: 8px;
-  font-weight: bold;
-}
-
-/* Diagramm */
-.chart-wrapper {
+  padding: 15px;
   display: flex;
   justify-content: center;
   align-items: center;
-  height: 250px;
+  font-size: 2em;
 }
 
-/* Karten-Platzhalter */
-.map-placeholder {
-  height: 200px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  color: #888;
-  border: 1px dashed #2bc48a;
-}
-
-/* Sidebar */
-.sidebar .form {
-  display: grid;
-  gap: 16px;
-}
-
-.field {
-  display: grid;
-  gap: 8px;
-}
-
-label {
-  font-size: 0.9rem;
-  color: #aaa;
-}
-
-/* Inputs */
-select,
-input[type="date"],
-input[type="range"] {
-  width: 100%;
-  padding: 8px;
-  background: #0e141c;
-  color: #fff;
-  border: 1px solid #2bc48a;
-  border-radius: 6px;
-}
-
-.hour-display {
+/* Footer (Blau) */
+.footer-container {
+  grid-area: footer;
+  background-color: #4285f4; /* Helles Blau für Footer */
+  border-top: none; /* Rahmen entfernt */
   display: flex;
   justify-content: space-between;
-  font-size: 0.8rem;
-  color: #aaa;
+  align-items: center;
+  padding: 0 20px;
+  font-size: 0.8em;
+  color: white; /* Weiße Schrift im blauen Footer */
 }
 
-/* Responsiv */
+/* ----- Responsiveness für kleine Bildschirme (Mobile) ----- */
 @media (max-width: 900px) {
-  .content {
+  .App {
+    /* Reihenfolge für Mobile: Header, Sidebar, MainArea, Footer */
+    grid-template-rows: 60px auto 1fr 40px;
+    grid-template-areas:
+      "header"
+      "sidebar"
+      "main-content"
+      "footer";
+  }
+
+  .main-content-wrapper {
+    /* Auf Mobile: MainArea nimmt die volle Breite ein */
     grid-template-columns: 1fr;
+    grid-template-areas: "main";
+  }
+
+  /* Die Sidebar wird jetzt oben platziert, wenn sie mehr Platz benötigt */
+  .sidebar-container {
+    grid-area: sidebar;
+    border-left: none;
+    border-bottom: 1px solid #555555; /* Leichte Trennlinie auf Mobile */
+  }
+
+  .mainarea-container {
+    /* Diagramm und Karte stapeln sich untereinander */
+    grid-template-rows: 40vh 40vh;
   }
 }
