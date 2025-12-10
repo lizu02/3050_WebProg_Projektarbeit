@@ -1,6 +1,7 @@
 from pathlib import Path
+from typing import Optional
 import pandas as pd
-from fastapi import FastAPI
+from fastapi import FastAPI, Query
 from fastapi.middleware.cors import CORSMiddleware
 
 
