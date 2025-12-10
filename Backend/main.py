@@ -1,119 +1,111 @@
-from fastapi import FastAPI, Query, HTTPException
-from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel, Field
-from typing import List, Optional
-from contextlib import asynccontextmanager
+from pathlib import Path
 import pandas as pd
-import os
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 
-# --- KONFIGURATION ---
-CSV_DATEI = "Gesamtdatensatz.csv"
-df: pd.DataFrame = None # Typ-Hinweis hinzufügen
 
-# --- 1. PYDANTIC MODELLE (L11 - Data Validation) ---
-# Anstatt rohe Dicts zu senden, definieren wir ein sauberes Schema.
-# Das ist "Best Practice", damit das Frontend genau weiss, was ankommt.
+# DATEN LADEN & VORBEREITEN
 
-class Messung(BaseModel):
-    # Wir wählen nur die Felder aus, die das Frontend wirklich braucht
-    # (Data Hiding / DTO Pattern)
-    timestamp: str
-    location_id: int
-    location_name: Optional[str] = None
-    pedestrians_count: int
-    adult_pedestrians_count: Optional[int] = None
-    child_pedestrians_count: Optional[int] = None
-    weather_condition: Optional[str] = None
-    temperature: Optional[float] = None
+BASE_DIR = Path(__file__).parent
+DATA_PATH = BASE_DIR / "Gesamtdatensatz.csv"
 
-    # Config für Pandas-Kompatibilität (wichtig!)
-    class Config:
-        from_attributes = True
 
-# --- LIFECYCLE (L10 - Events) ---
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    global df
-    print("🔄 [Startup] Lade Datensatz...")
-    if os.path.exists(CSV_DATEI):
-        try:
-            # Optimierung: Wir parsen das Datum direkt beim Laden
-            df = pd.read_csv(CSV_DATEI, parse_dates=['timestamp'])
-            # WICHTIG: NaN Werte (leere Zellen) machen JSON kaputt. 
-            # Wir füllen sie hier einmalig, statt bei jedem Request.
-            df = df.where(pd.notnull(df), None)
-            print(f"✅ [Success] {len(df)} Zeilen geladen.")
-        except Exception as e:
-            print(f"❌ [Error] Fehler: {e}")
-    else:
-        print(f"⚠️ [Warning] Datei '{CSV_DATEI}' fehlt!")
-    
-    yield
-    print("🛑 [Shutdown] Server beendet.")
+# Daten einlesen
+df = pd.read_csv(DATA_PATH)
+df["location_id"] = df["location_id"].astype(int)
+
+
+# Zeitstempel in Datetime umwandeln
+ts = pd.to_datetime(df["timestamp"])
+try:
+    # Zeitzone entfernen
+    ts = ts.dt.tz_convert(None)
+except TypeError:
+    pass
+
+df["timestamp"] = ts
+
+# leere Zellen ohne Werte im ganzen Datensatz in None umwandeln
+
+df = df.where(pd.notnull(df), None)
+
+print(f"Daten geladen: {len(df)} Zeilen.")
+
+# FASTAPI App Konfig.
 
 app = FastAPI(
-    title="Fussgängerfrequenzen API",
-    description="Backend für Projektarbeit HS25",
-    version="1.0.0",
-    lifespan=lifespan
+    title="Projektarbeit API: Kinder vs. Erwachsene",
+    description="API zur Analyse der Passantenfrequenzen an der bestimmten Standorten",
 )
 
-# CORS (Damit React zugreifen darf)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    # Zugriff von React regeln
+    allow_origins=["http://localhost:5173", "http://127.0.0.1:5173"],
+    allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# --- ENDPUNKTE (L10/L12 - Path & Query Params) ---
+# Endpunkte
 
-@app.get("/", tags=["Status"])
-def read_root():
-    """Prüft, ob die API läuft und Daten vorhanden sind."""
-    if df is None:
-        return {"status": "error", "message": "Keine Daten geladen"}
+@app.get("/")
+def root():
     return {
-        "status": "online", 
-        "rows_loaded": len(df),
-        "columns": list(df.columns)
+        "message": "Das Backend läuft.",
+        "Zeilen": len(df),
+        "Spalten": list(df.columns)
     }
 
-# Hier nutzen wir das Pydantic Model 'Messung' als response_model.
-# Das garantiert, dass die API immer eine Liste von Messungen zurückgibt.
-@app.get("/data", response_model=List[Messung], tags=["Daten"])
+@app.get("/locations")
+def get_locations():
+    """
+    Hilfs-Endpunkt: Gibt alle verfügbaren Standorte zurück.
+    Für Dropdown-Menü im Frontend
+    """
+    # Location-IDs und Namen hole
+    locations = df[['location_id', 'location_name']].drop_duplicates()
+    return locations.to_dict(orient="records")
+
+@app.get("/data")
 def get_filtered_data(
-    location_id: Optional[int] = Query(None, description="Filter nach Standort ID"),
-    limit: int = Query(100, ge=1, le=1000, description="Max. Anzahl Datensätze (Default: 100)")
+    location_id: int, 
+    start_date: Optional[str] = Query(None, description="Startdatum (YYYY-MM-DD)"),
+    end_date: Optional[str] = Query(None, description="Enddatum (YYYY-MM-DD)")
 ):
     """
-    Holt gefilterte Daten.
-    Dies verhindert, dass wir aus Versehen 26MB an das Frontend schicken.
-    """
-    if df is None:
-        raise HTTPException(status_code=503, detail="Daten noch nicht geladen")
-
-    # Wir arbeiten auf einer Kopie, um das Original nicht zu ändern
-    result = df
-
-    # 1. Filtern nach Standort (falls angegeben)
-    if location_id is not None:
-        result = result[result['location_id'] == location_id]
-
-    # 2. Limitieren (Performance!)
-    # Wir nehmen die neuesten Daten (tail) oder die ersten (head), je nach Wunsch.
-    # Hier nehmen wir z.B. die ersten 'limit' Zeilen des gefilterten Ergebnisses.
-    result = result.head(limit)
-
-    # Umwandlung in Liste von Dicts, Pydantic validiert den Rest automatisch
-    return result.to_dict(orient="records")
-
-@app.get("/locations", tags=["Metadaten"])
-def get_locations():
-    """Gibt eine Liste aller verfügbaren Standorte zurück."""
-    if df is None:
-         raise HTTPException(status_code=503, detail="Daten noch nicht geladen")
+    Filtert nach Ort und Zeit.
+    Gibt Erwachsenen- und Kinderzahlen zurück.
+    Beispiel: /data?location_id=329&start_date=2024-04-01&end_date=2024-04-07
     
-    # Pandas Magie: Eindeutige Standorte extrahieren
-    locations = df[['location_id', 'location_name']].drop_duplicates().to_dict(orient="records")
-    return locations
+    location_id's:
+    
+    "Bahnhofstrasse Mitte": 329,
+    "Bahnhofstrasse Nord": 331,
+    "Bahnhofstrasse Süd": 330,
+    "Lintheschergasse": 670,
+
+    """
+
+
+    #Nach Standort filtern
+    filtered_df = df[df["location_id"] == location_id]
+
+    #Nach Zeit filtern (falls Datum angegeben)
+    if start_date:
+        filtered_df = filtered_df[filtered_df["timestamp"] >= pd.to_datetime(start_date)]
+    if end_date:
+        filtered_df = filtered_df[filtered_df["timestamp"] <= pd.to_datetime(end_date)]
+
+    #Nur benötigte Spalten zurückgeben
+    columns_needed = [
+        "timestamp", 
+        "adult_pedestrians_count", 
+        "child_pedestrians_count",
+        "pedestrians_count" # Total
+    ]
+    
+   
+    result = filtered_df[columns_needed].sort_values("timestamp") #nach Zeit sortieren für Übersicht
+
+    return result.to_dict(orient="records")
