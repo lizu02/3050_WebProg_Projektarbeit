@@ -13,7 +13,6 @@ export const MainArea = ({
       <Typography variant="h6" sx={{ mb: 1 }}>
         Visualisierung Kinder- vs. Erwachsenenanteil
       </Typography>
-
       <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
         <Box component="span" sx={{ fontWeight: "bold" }}>
           Aktuelle Filter:
