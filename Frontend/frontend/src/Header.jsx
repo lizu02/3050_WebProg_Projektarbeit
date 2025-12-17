@@ -1,11 +1,9 @@
-// Header-Komponente
-export default function Header() {
-  return (
-    // Stellt den Projekttitel oben dar
-    <header className="header-container">
-      <h1 className="header-title">
-        GIS-Projekt: Fussgängerfrequenzen Analyse
-      </h1>
-    </header>
-  );
-}
+import { Typography } from "@mui/material";
+
+export const Header = () => (
+  <header className="header">
+    <Typography variant="h5" sx={{ color: "white", fontWeight: "bold" }}>
+      3050-Webprogrammierung: Analyse des Kinderanteils in Zürich
+    </Typography>
+  </header>
+);

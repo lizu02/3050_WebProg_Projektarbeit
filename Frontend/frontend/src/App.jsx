@@ -1,25 +1,44 @@
+import { useState } from "react";
+import { Header } from "./Header";
+import { Sidebar } from "./Sidebar";
+import { MainArea } from "./MainArea";
+import { Footer } from "./Footer";
 import "./App.css";
 
-// Importiere die Layout-Teile
-import Header from "./Header";
-import Footer from "./Footer";
-import Sidebar from "./Sidebar";
-import MainArea from "./MainArea";
+function App() {
+  const [selectedLocation, setSelectedLocation] = useState(
+    "Bahnhofstrasse (Mitte)"
+  );
+  const [selectedDate, setSelectedDate] = useState("2024-06-12");
+  const [selectedHour, setSelectedHour] = useState(12);
+  const [selectedWeather, setSelectedWeather] = useState("clear");
 
-// Die Hauptkomponente mit dem Layout-Grid
-export default function App() {
   return (
-    // "App" ist der Haupt-Grid-Container für Header, Content und Footer
     <div className="App">
       <Header />
 
-      {/* Wrapper für MainArea (links) und Sidebar (rechts) */}
       <div className="main-content-wrapper">
-        <MainArea />
-        <Sidebar />
+        <MainArea
+          selectedLocation={selectedLocation}
+          selectedDate={selectedDate}
+          selectedHour={selectedHour}
+          selectedWeather={selectedWeather}
+        />
+        <Sidebar
+          selectedLocation={selectedLocation}
+          setSelectedLocation={setSelectedLocation}
+          selectedDate={selectedDate}
+          setSelectedDate={setSelectedDate}
+          selectedHour={selectedHour}
+          setSelectedHour={setSelectedHour}
+          selectedWeather={selectedWeather}
+          setSelectedWeather={setSelectedWeather}
+        />
       </div>
 
       <Footer />
     </div>
   );
 }
+
+export default App;

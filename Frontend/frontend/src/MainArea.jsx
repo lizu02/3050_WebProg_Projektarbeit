@@ -1,13 +1,27 @@
-// MainArea Komponente für Diagramm und Karte
-export default function MainArea() {
-  return (
-    // Enthält das innere Grid für die zwei Hauptboxen
-    <main className="mainarea-container">
-      {/* Obere Box: Diagramm */}
-      <section className="diagramm-box">DIAGRAMM (Platzhalter)</section>
+import { Typography, Box } from "@mui/material";
 
-      {/* Untere Box: Karte */}
-      <section className="karte-box">KARTE (Platzhalter)</section>
-    </main>
-  );
-}
+export const MainArea = ({
+  selectedLocation,
+  selectedDate,
+  selectedHour,
+  selectedWeather,
+}) => (
+  <main className="mainarea">
+    <Box className="diagramm-box">
+      <Typography variant="h6" sx={{ mb: 1 }}>
+        Visualisierung Kinder- vs. Erwachsenenanteil
+      </Typography>
+
+      <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+        <Box component="span" sx={{ fontWeight: "bold" }}>
+          Aktuelle Filter:
+        </Box>
+        <br />
+        Standort: {selectedLocation}
+        <br />
+        Datum: {selectedDate} | Stunde: {selectedHour}:00 | Wetter:{" "}
+        {selectedWeather}
+      </Typography>
+    </Box>
+  </main>
+);

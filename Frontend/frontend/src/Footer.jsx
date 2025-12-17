@@ -1,13 +1,10 @@
-// Footer-Komponente
-export default function Footer() {
-  const currentYear = new Date().getFullYear();
+import { Typography } from "@mui/material";
 
-  return (
-    // Stellt die Metadaten unten dar
-    <footer className="footer-container">
-      <div>GIS-Projekt | Webprogrammierung</div>
-      <div>Autoren: Jan & Livio</div>
-      <div>Datum: 24.12.{currentYear}</div>
-    </footer>
-  );
-}
+export const Footer = () => (
+  <footer className="footer">
+    <Typography variant="caption" sx={{ color: "white" }}>
+      GIS-Projekt | Webprogrammierung | Autoren: Jan Rüdisühli & Livio Zurflüh |
+      Dezember 2025
+    </Typography>
+  </footer>
+);
