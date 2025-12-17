@@ -1,72 +1,112 @@
-from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
+from pathlib import Path
+from typing import Optional
 import pandas as pd
-import os
-from contextlib import asynccontextmanager
+from fastapi import FastAPI, Query
+from fastapi.middleware.cors import CORSMiddleware
 
-# --- KONFIGURATION ---
-CSV_DATEI = "Gesamtdatensatz.csv"
-df = None
 
-# --- LIFECYCLE (STARTUP) ---
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    global df
-    print("🔄 [Startup] Fahre Backend hoch...")
-    
-    if os.path.exists(CSV_DATEI):
-        print(f"📂 [Loading] Lese '{CSV_DATEI}' ein... (Das kann kurz dauern)")
-        try:
-            # Daten laden
-            df = pd.read_csv(CSV_DATEI, parse_dates=['timestamp'])
-            
-            print("✅ [Success] Daten erfolgreich geladen!")
-            print(f"📊 Einträge: {len(df)}")
-            if not df.empty:
-                print(f"📅 Zeitraum: {df['timestamp'].min()} bis {df['timestamp'].max()}")
-        except Exception as e:
-            print(f"❌ [Error] Fehler beim Lesen der CSV: {e}")
-    else:
-        print(f"⚠️ [Warning] Datei '{CSV_DATEI}' nicht gefunden!")
-    
-    yield
-    print("🛑 [Shutdown] Backend wird beendet.")
+# DATEN LADEN & VORBEREITEN
 
-app = FastAPI(lifespan=lifespan)
+BASE_DIR = Path(__file__).parent
+DATA_PATH = BASE_DIR / "Gesamtdatensatz.csv"
 
-# --- CORS ---
+
+# Daten einlesen
+df = pd.read_csv(DATA_PATH)
+df["location_id"] = df["location_id"].astype(int)
+
+
+# Zeitstempel in Datetime umwandeln
+ts = pd.to_datetime(df["timestamp"])
+try:
+    # Zeitzone entfernen
+    ts = ts.dt.tz_convert(None)
+except TypeError:
+    pass
+
+df["timestamp"] = ts
+
+# leere Zellen ohne Werte im ganzen Datensatz in None umwandeln
+
+df = df.where(pd.notnull(df), None)
+
+print(f"Daten geladen: {len(df)} Zeilen.")
+
+# FASTAPI App Konfig.
+
+app = FastAPI(
+    title="Projektarbeit API: Kinder vs. Erwachsene",
+    description="API zur Analyse der Passantenfrequenzen an der bestimmten Standorten",
+)
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    # Zugriff von React regeln
+    allow_origins=["http://localhost:5173", "http://127.0.0.1:5173"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# --- ENDPUNKTE ---
+# Endpunkte
 
 @app.get("/")
-def read_root():
-    if df is not None:
-        return {
-            "status": "online",
-            "total_records": len(df),
-            "columns": list(df.columns)
-        }
-    return {"status": "error", "message": "Keine Daten geladen."}
+def root():
+    return {
+        "message": "Das Backend läuft.",
+        "Zeilen": len(df),
+        "Spalten": list(df.columns)
+    }
 
-@app.get("/preview")
-def get_preview():
-    """Gibt die ersten 5 Zeilen zurück und behandelt NaN-Werte."""
-    if df is not None:
-        # 1. Wir nehmen eine Kopie der ersten 5 Zeilen
-        preview_df = df.head(5).copy()
-        
-        # 2. DER FIX: Wir ersetzen NaN durch None (was zu JSON 'null' wird)
-        # .astype(object) sorgt dafür, dass wir 'None' auch in Zahlen-Spalten schreiben dürfen
-        # .where(pd.notnull(preview_df), None) behält Werte, ersetzt NaNs mit None
-        preview_df = preview_df.astype(object).where(pd.notnull(preview_df), None)
-        
-        return preview_df.to_dict(orient="records")
-        
-    return {"error": "Daten nicht verfügbar"}
+@app.get("/locations")
+def get_locations():
+    """
+    Hilfs-Endpunkt: Gibt alle verfügbaren Standorte zurück.
+    Für Dropdown-Menü im Frontend
+    """
+    # Location-IDs und Namen hole
+    locations = df[['location_id', 'location_name']].drop_duplicates()
+    return locations.to_dict(orient="records")
+
+@app.get("/data")
+def get_filtered_data(
+    location_id: int, 
+    start_date: Optional[str] = Query(None, description="Startdatum (YYYY-MM-DD)"),
+    end_date: Optional[str] = Query(None, description="Enddatum (YYYY-MM-DD)")
+):
+    """
+    Filtert nach Ort und Zeit.
+    Gibt Erwachsenen- und Kinderzahlen zurück.
+    Beispiel: /data?location_id=329&start_date=2024-04-01&end_date=2024-04-07
+    
+    location_id's:
+    
+    "Bahnhofstrasse Mitte": 329,
+    "Bahnhofstrasse Nord": 331,
+    "Bahnhofstrasse Süd": 330,
+    "Lintheschergasse": 670,
+
+    """
+
+
+    #Nach Standort filtern
+    filtered_df = df[df["location_id"] == location_id]
+
+    #Nach Zeit filtern (falls Datum angegeben)
+    if start_date:
+        filtered_df = filtered_df[filtered_df["timestamp"] >= pd.to_datetime(start_date)]
+    if end_date:
+        filtered_df = filtered_df[filtered_df["timestamp"] <= pd.to_datetime(end_date)]
+
+    #Nur benötigte Spalten zurückgeben
+    columns_needed = [
+        "timestamp", 
+        "adult_pedestrians_count", 
+        "child_pedestrians_count",
+        "pedestrians_count" # Total
+    ]
+    
+   
+    result = filtered_df[columns_needed].sort_values("timestamp") #nach Zeit sortieren für Übersicht
+
+    return result.to_dict(orient="records")
