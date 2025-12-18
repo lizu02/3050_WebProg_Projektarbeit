@@ -31,8 +31,6 @@ export const Sidebar = ({
   setSelectedDate,
   selectedHour,
   setSelectedHour,
-  selectedWeather,
-  setSelectedWeather,
 }) => {
   const handleSliderChange = (event, newValue) => {
     setSelectedHour(newValue);
@@ -109,27 +107,6 @@ export const Sidebar = ({
         </Box>
       </Box>
 
-      {/* Dropdown für Wetterbedingungen */}
-      <FormControl fullWidth sx={{ mb: 5 }}>
-        <InputLabel id="weather-label" sx={{ color: "black" }}>
-          Wetterzustand
-        </InputLabel>
-        <Select
-          labelId="weather-label"
-          id="weather-select"
-          value={selectedWeather}
-          label="Wetterzustand"
-          onChange={(e) => setSelectedWeather(e.target.value)}
-          sx={{ backgroundColor: "white" }}
-        >
-          {WEATHER_CONDITIONS.map((weather) => (
-            <MenuItem key={weather.value} value={weather.value}>
-              {weather.label}
-            </MenuItem>
-          ))}
-        </Select>
-      </FormControl>
-
       {/*Datenabfrage-Knopf Kalendersymbol */}
       <Button
         variant="contained"
@@ -148,7 +125,6 @@ export const Sidebar = ({
             selectedLocation,
             selectedDate,
             selectedHour,
-            selectedWeather,
           })
         }
       >

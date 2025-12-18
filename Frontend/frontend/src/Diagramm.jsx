@@ -8,10 +8,10 @@ export const Diagramm = ({ data }) => {
 
   // 1. Daten aggregieren
   const totalAdults = data
-    ? data.reduce((sum, item) => sum + (item.adult_pedestrians_count || 0), 0)
+    ? data.reduce((sum, item) => sum + (item.Erwachsene || 0), 0)
     : 0;
   const totalChildren = data
-    ? data.reduce((sum, item) => sum + (item.child_pedestrians_count || 0), 0)
+    ? data.reduce((sum, item) => sum + (item.Kinder || 0), 0)
     : 0;
 
   const totalSum = totalAdults + totalChildren;

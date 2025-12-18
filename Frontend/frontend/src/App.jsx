@@ -1,41 +1,66 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Header } from "./Header";
 import { Sidebar } from "./Sidebar";
 import { MainArea } from "./MainArea";
 import { Footer } from "./Footer";
 import "./App.css";
-import teildaten from "./Teildatensatz.json";
+
+// ID's definieren fürs Backend
+const LOCATION_IDS = {
+  "Bahnhofstrasse (Mitte)": 329,
+  "Bahnhofstrasse (Nord)": 331,
+  "Bahnhofstrasse (Süd)": 330,
+  Lintheschergasse: 670,
+};
 
 function App() {
   const [selectedLocation, setSelectedLocation] = useState(
     "Bahnhofstrasse (Mitte)"
   );
-  // KORREKTUR 1: Startdatum auf einen Wert gesetzt, der im Datensatz existiert
   const [selectedDate, setSelectedDate] = useState("2021-10-15");
   const [selectedHour, setSelectedHour] = useState(12);
-  const [selectedWeather, setSelectedWeather] = useState("clear");
 
-  const filteredData = teildaten.filter((item) => {
-    // 1. Ort filtern
-    const isLocationMatch = item.location_name === selectedLocation;
+  // Neu: Wetter ist kein Filter mehr, sondern eine Info aus den Daten
+  const [Weather, setWeather] = useState("Unbekannt");
 
-    // 2. Datum filtern
-    // Wir prüfen, ob der Zeitstempel mit dem gewählten Datum (YYYY-MM-DD) beginnt
-    const isDateMatch = item.timestamp.startsWith(selectedDate);
+  const [rawData, setRawData] = useState([]);
+  const [loading, setLoading] = useState(false);
 
-    // 3. Stunde filtern (NEU)
-    // Der Timestamp im JSON hat das Format "YYYY-MM-DD HH:mm:ss+00:00"
-    // Wir extrahieren die Stunde (Zeichen an Index 11 und 12) und wandeln sie in eine Zahl um.
-    const itemHour = parseInt(item.timestamp.substring(11, 13), 10);
-    const isHourMatch = itemHour === selectedHour;
+  useEffect(() => {
+    const fetchData = async () => {
+      setLoading(true);
 
-    // Hinweis: Wetter-Filterung ist hier optional. Da die Wetter-Bezeichnungen im JSON
-    // (z.B. "partly-cloudy-night") oft nicht exakt mit den einfachen Sidebar-Werten
-    // (z.B. "partly-cloudy") übereinstimmen, lassen wir sie für die Stabilität erst mal weg.
-    // Wenn du sie brauchst, müsstest du eine "includes"-Logik einbauen.
+      const locationId = LOCATION_IDS[selectedLocation];
 
-    return isLocationMatch && isDateMatch && isHourMatch;
-  });
+      const url = new URL("http://127.0.0.1:8000/data");
+      url.searchParams.append("location_id", locationId);
+      url.searchParams.append("date", selectedDate);
+      url.searchParams.append("hour", selectedHour);
+
+      console.log("Fetching:", url.toString());
+
+      try {
+        const response = await fetch(url);
+        const json = await response.json();
+        setRawData(json);
+
+        // Wetter aus dem ersten Datensatz extrahieren, falls vorhanden
+        if (json && json.length > 0 && json[0].Wetter) {
+          setWeather(json[0].Wetter);
+        } else {
+          setWeather("Keine Daten / Unbekannt");
+        }
+      } catch (err) {
+        console.error(err);
+        setRawData([]);
+        setWeather("-");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [selectedLocation, selectedDate, selectedHour]);
 
   return (
     <div className="App">
@@ -43,11 +68,12 @@ function App() {
 
       <div className="main-content-wrapper">
         <MainArea
-          data={filteredData}
+          data={rawData}
           selectedLocation={selectedLocation}
           selectedDate={selectedDate}
           selectedHour={selectedHour}
-          selectedWeather={selectedWeather}
+          Weather={Weather}
+          isLoading={loading}
         />
         <Sidebar
           selectedLocation={selectedLocation}
@@ -56,8 +82,6 @@ function App() {
           setSelectedDate={setSelectedDate}
           selectedHour={selectedHour}
           setSelectedHour={setSelectedHour}
-          selectedWeather={selectedWeather}
-          setSelectedWeather={setSelectedWeather}
         />
       </div>
       <Footer />

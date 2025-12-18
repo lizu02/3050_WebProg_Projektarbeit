@@ -6,7 +6,7 @@ export const MainArea = ({
   selectedLocation,
   selectedDate,
   selectedHour,
-  selectedWeather,
+  Weather,
 }) => (
   <main className="mainarea">
     <Box className="diagramm-box" sx={{ minHeight: "500px" }}>
@@ -20,8 +20,9 @@ export const MainArea = ({
         <br />
         Standort: {selectedLocation}
         <br />
-        Datum: {selectedDate} | Stunde: {selectedHour}:00 | Wetter:{" "}
-        {selectedWeather}
+        Datum: {selectedDate} | Stunde: {selectedHour}:00 <br />
+        Wetter zum gewählten Zeitpunkt:<strong>{Weather}</strong>
+        {}
       </Typography>
 
       <Diagramm
@@ -29,7 +30,6 @@ export const MainArea = ({
         location={selectedLocation}
         date={selectedDate}
         hour={selectedHour}
-        weather={selectedWeather}
       />
     </Box>
   </main>
