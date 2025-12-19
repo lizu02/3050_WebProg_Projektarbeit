@@ -17,14 +17,7 @@ df["location_id"] = df["location_id"].astype(int)
 
 
 # Zeitstempel in Datetime umwandeln
-ts = pd.to_datetime(df["timestamp"])
-try:
-    # Zeitzone entfernen
-    ts = ts.dt.tz_convert(None)
-except TypeError:
-    pass
-
-df["timestamp"] = ts
+df["timestamp"] = pd.to_datetime(df["timestamp"], utc=True).dt.tz_convert(None)
 
 # leere Zellen ohne Werte im ganzen Datensatz in None umwandeln
 
@@ -60,53 +53,34 @@ def root():
 
 @app.get("/locations")
 def get_locations():
-    """
-    Hilfs-Endpunkt: Gibt alle verfügbaren Standorte zurück.
-    Für Dropdown-Menü im Frontend
-    """
-    # Location-IDs und Namen hole
+    """Liefert die Liste aller Orte für das Dropdown-Menü"""
+    # Wir nehmen nur ID und Name und entfernen Doppelte
     locations = df[['location_id', 'location_name']].drop_duplicates()
+    locations = locations.sort_values('location_name')
     return locations.to_dict(orient="records")
 
 @app.get("/data")
-def get_filtered_data(
-    location_id: int, 
-    start_date: Optional[str] = Query(None, description="Startdatum (YYYY-MM-DD)"),
-    end_date: Optional[str] = Query(None, description="Enddatum (YYYY-MM-DD)")
-):
-    """
-    Filtert nach Ort und Zeit.
-    Gibt Erwachsenen- und Kinderzahlen zurück.
-    Beispiel: /data?location_id=329&start_date=2024-04-01&end_date=2024-04-07
+def get_data(location_id: int, date: str, hour: int):
+    """Liefert die Diagramm-Daten"""
     
-    location_id's:
+    # Filtern nach ID, Datum und Stunde
+    mask = (
+        (df["location_id"] == location_id) & 
+        (df["timestamp"].dt.date.astype(str) == date) & 
+        (df["timestamp"].dt.hour == hour)
+    )
+    filtered = df[mask].copy()
+
+    # HIER IST DEINE WUNSCH-ÄNDERUNG:
+    # Wir benennen die Spalten direkt und hart um.
+    rename_map = {
+        "adult_pedestrians_count": "Erwachsene",
+        "child_pedestrians_count": "Kinder",
+        "weather_condition": "Wetter"  # Hier greifen wir deine Spalte ab
+    }
     
-    "Bahnhofstrasse Mitte": 329,
-    "Bahnhofstrasse Nord": 331,
-    "Bahnhofstrasse Süd": 330,
-    "Lintheschergasse": 670,
-
-    """
-
-
-    #Nach Standort filtern
-    filtered_df = df[df["location_id"] == location_id]
-
-    #Nach Zeit filtern (falls Datum angegeben)
-    if start_date:
-        filtered_df = filtered_df[filtered_df["timestamp"] >= pd.to_datetime(start_date)]
-    if end_date:
-        filtered_df = filtered_df[filtered_df["timestamp"] <= pd.to_datetime(end_date)]
-
-    #Nur benötigte Spalten zurückgeben
-    columns_needed = [
-        "timestamp", 
-        "adult_pedestrians_count", 
-        "child_pedestrians_count",
-        "pedestrians_count" # Total
-    ]
-    
-   
-    result = filtered_df[columns_needed].sort_values("timestamp") #nach Zeit sortieren für Übersicht
+    # Nur die benötigten Spalten auswählen und umbenennen
+    # (Das verhindert auch, dass unnötiger Müll an das Frontend geschickt wird)
+    result = filtered[list(rename_map.keys())].rename(columns=rename_map)
 
     return result.to_dict(orient="records")
