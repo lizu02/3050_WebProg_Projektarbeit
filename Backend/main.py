@@ -61,15 +61,21 @@ def get_locations():
     return locations.to_dict(orient="records")
 
 @app.get("/data")
-def get_data(location_id: int, date: str, hour: int):
+def get_data(location_id: int, date: str, hour: int, all_day: str = "false"):
+    
+    is_all_day = all_day.lower() == "true"
+    
     """Liefert die Diagramm-Daten"""
     
-    # Filtern nach ID, Datum und Stunde
     mask = (
         (df["location_id"] == location_id) & 
-        (df["timestamp"].dt.date.astype(str) == date) & 
-        (df["timestamp"].dt.hour == hour)
+        (df["timestamp"].dt.date.astype(str) == date)
     )
+
+    # Wenn NICHT ganzer Tag, dann auch nach Stunde filtern
+    if not is_all_day:
+        mask = mask & (df["timestamp"].dt.hour == hour)
+    
     filtered = df[mask].copy()
 
     weather = "Unbekannt"

@@ -8,6 +8,8 @@ import {
   InputLabel,
   TextField,
   Button,
+  FormControlLabel,
+  Checkbox,
 } from "@mui/material";
 
 export const Sidebar = ({
@@ -18,6 +20,8 @@ export const Sidebar = ({
   setSelectedDate,
   selectedHour,
   setSelectedHour,
+  isAllDay,
+  setIsAllDay,
   onRefresh,
 }) => {
   const handleSliderChange = (event, newValue) => {
@@ -93,6 +97,23 @@ export const Sidebar = ({
             23:00
           </Typography>
         </Box>
+      </Box>
+
+      <Box sx={{ mb: 3 }}>
+        <FormControlLabel
+          control={
+            <Checkbox
+              checked={isAllDay}
+              onChange={(e) => setIsAllDay(e.target.checked)}
+              sx={{ color: "#4285f4", "&.Mui-checked": { color: "#4285f4" } }}
+            />
+          }
+          label={
+            <Typography variant="body1" color="black">
+              Ganzer Tag (alle Stunden)
+            </Typography>
+          }
+        />
       </Box>
 
       {/*Datenabfrage-Knopf Kalendersymbol */}

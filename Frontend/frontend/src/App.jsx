@@ -10,10 +10,12 @@ function App() {
   const [selectedLocationID, setSelectedLocationID] = useState("");
   const [selectedDate, setSelectedDate] = useState("2021-10-15");
   const [selectedHour, setSelectedHour] = useState(12);
+  const [isAllDay, setIsAllDay] = useState(false);
   const [activeParams, setActiveParams] = useState({
     id: "",
     date: "2021-10-15",
     hour: 12,
+    allDay: false,
   });
 
   const [Weather, setWeather] = useState("Unbekannt");
@@ -52,6 +54,7 @@ function App() {
       url.searchParams.append("location_id", activeParams.id);
       url.searchParams.append("date", activeParams.date);
       url.searchParams.append("hour", activeParams.hour);
+      url.searchParams.append("all_day", activeParams.allDay);
 
       console.log("Fetching:", url.toString());
 
@@ -80,6 +83,7 @@ function App() {
       id: selectedLocationID,
       date: selectedDate,
       hour: selectedHour,
+      allDay: isAllDay,
     });
   };
 
@@ -97,6 +101,7 @@ function App() {
           selectedLocation={currentLocationName}
           selectedDate={activeParams.date}
           selectedHour={activeParams.hour}
+          isAllDay={activeParams.allDay}
           Weather={Weather}
           isLoading={loading}
           totalCount={totalCount}
@@ -109,6 +114,8 @@ function App() {
           setSelectedDate={setSelectedDate}
           selectedHour={selectedHour}
           setSelectedHour={setSelectedHour}
+          isAllDay={isAllDay}
+          setIsAllDay={setIsAllDay}
           onRefresh={handleRefresh}
         />
       </div>

@@ -6,6 +6,7 @@ export const MainArea = ({
   selectedLocation,
   selectedDate,
   selectedHour,
+  isAllDay,
   Weather,
   totalCount,
 }) => (
@@ -20,14 +21,18 @@ export const MainArea = ({
         sx={{ mb: 1, fontSize: "0.85rem" }}
       >
         <Box component="span" sx={{ fontWeight: "bold" }}>
-          Aktuelle Filter:
+          {selectedLocation}
         </Box>
+        {" | "}
+        {selectedDate} {" | "}
+        {/* NEU: Anzeige Logik */}
+        {isAllDay ? (
+          <strong>Ganzer Tag</strong>
+        ) : (
+          <span>{selectedHour}:00 Uhr</span>
+        )}
         <br />
-        Standort: {selectedLocation}
-        <br />
-        Datum: {selectedDate} | Stunde: {selectedHour}:00 <br />
-        Wetter zum gewählten Zeitpunkt:<strong>{Weather}</strong>
-        {}
+        Wetter: <strong>{Weather}</strong>
       </Typography>
 
       <Diagramm data={data} total={totalCount} />
