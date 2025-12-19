@@ -6,7 +6,7 @@ export const Diagramm = ({ data }) => {
   const containerRef = useRef(null);
   const [chartError, setChartError] = useState(null);
 
-  // 1. Daten aggregieren
+  // Daten aggregieren
   const totalAdults = data
     ? data.reduce((sum, item) => sum + (item.Erwachsene || 0), 0)
     : 0;

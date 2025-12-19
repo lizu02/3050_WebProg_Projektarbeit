@@ -17,7 +17,7 @@ df["location_id"] = df["location_id"].astype(int)
 
 
 # Zeitstempel in Datetime umwandeln
-df["timestamp"] = pd.to_datetime(df["timestamp"], utc=True).dt.tz_convert(None)
+df["timestamp"] = pd.to_datetime(df["timestamp"], utc=True).dt.tz_convert('Europe/Zurich').dt.tz_localize(None)
 
 # leere Zellen ohne Werte im ganzen Datensatz in None umwandeln
 

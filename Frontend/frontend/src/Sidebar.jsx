@@ -10,27 +10,15 @@ import {
   Button,
 } from "@mui/material";
 
-const LOCATIONS = [
-  "Bahnhofstrasse (Nord)",
-  "Bahnhofstrasse (Mitte)",
-  "Bahnhofstrasse (Süd)",
-  "Lintheschergasse",
-];
-const WEATHER_CONDITIONS = [
-  { value: "clear", label: "Klar" },
-  { value: "partly-cloudy", label: "Teilweise bewölkt" },
-  { value: "rain", label: "Regen" },
-  { value: "snow", label: "Schnee" },
-  { value: "fog", label: "Nebel" },
-];
-
 export const Sidebar = ({
-  selectedLocation,
-  setSelectedLocation,
+  locationList,
+  selectedLocationID,
+  setSelectedLocationID,
   selectedDate,
   setSelectedDate,
   selectedHour,
   setSelectedHour,
+  onRefresh,
 }) => {
   const handleSliderChange = (event, newValue) => {
     setSelectedHour(newValue);
@@ -53,14 +41,14 @@ export const Sidebar = ({
         <Select
           labelId="location-label"
           id="location-select"
-          value={selectedLocation}
+          value={selectedLocationID}
           label="Standort"
-          onChange={(e) => setSelectedLocation(e.target.value)}
+          onChange={(e) => setSelectedLocationID(e.target.value)}
           sx={{ backgroundColor: "white" }}
         >
-          {LOCATIONS.map((loc) => (
-            <MenuItem key={loc} value={loc}>
-              {loc}
+          {locationList.map((loc) => (
+            <MenuItem key={loc.location_id} value={loc.location_id}>
+              {loc.location_name}
             </MenuItem>
           ))}
         </Select>
@@ -120,13 +108,7 @@ export const Sidebar = ({
           },
         }}
         fullWidth
-        onClick={() =>
-          console.log("Starte Datenabfrage mit den Filtern:", {
-            selectedLocation,
-            selectedDate,
-            selectedHour,
-          })
-        }
+        onClick={onRefresh}
       >
         Visualisierung aktualisieren
       </Button>
