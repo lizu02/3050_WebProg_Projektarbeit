@@ -1,11 +1,12 @@
 from pathlib import Path
 from typing import Optional
 import pandas as pd
+import altair as alt
 from fastapi import FastAPI, Query
 from fastapi.middleware.cors import CORSMiddleware
 
 
-# DATEN LADEN & VORBEREITEN
+
 
 BASE_DIR = Path(__file__).parent
 DATA_PATH = BASE_DIR / "Gesamtdatensatz.csv"
@@ -71,16 +72,58 @@ def get_data(location_id: int, date: str, hour: int):
     )
     filtered = df[mask].copy()
 
-    # HIER IST DEINE WUNSCH-ÄNDERUNG:
-    # Wir benennen die Spalten direkt und hart um.
-    rename_map = {
-        "adult_pedestrians_count": "Erwachsene",
-        "child_pedestrians_count": "Kinder",
-        "weather_condition": "Wetter"  # Hier greifen wir deine Spalte ab
-    }
+    weather = "Unbekannt"
+    if not filtered.empty:
+        # Prüfen, ob die Spalte 'weather_condition' existiert
+        if "weather_condition" in filtered.columns:
+            weather = filtered.iloc[0]["weather_condition"]
+        elif "Meteo" in filtered.columns: 
+            weather = filtered.iloc[0]["Meteo"]
     
-    # Nur die benötigten Spalten auswählen und umbenennen
-    # (Das verhindert auch, dass unnötiger Müll an das Frontend geschickt wird)
-    result = filtered[list(rename_map.keys())].rename(columns=rename_map)
+    
+ # Daten aggregieren (Summe bilden)
+    adults = filtered["adult_pedestrians_count"].sum()
+    children = filtered["child_pedestrians_count"].sum()
+    total_count = filtered["pedestrians_count"].sum()
+    
+# Kleinen DataFrame speziell für das Diagramm bauen
+# Hier legen wir die Namen "Erwachsene" und "Kinder" fest (das ersetzt dein rename_map)
+    chart_df = pd.DataFrame([
+        {"Kategorie": "Erwachsene", "Anzahl": adults},
+        {"Kategorie": "Kinder", "Anzahl": children}
+    ])
 
-    return result.to_dict(orient="records")
+# Das Diagramm definieren
+    base = alt.Chart(chart_df).encode(
+        theta=alt.Theta("Anzahl", stack=True)
+    )
+
+    chart = base.mark_arc(innerRadius=70).encode(
+        color=alt.Color(
+            "Kategorie", 
+            scale=alt.Scale(range=["#1976d2", "#ed6c02"]), 
+            # Hier stylen wir die Legende exakt wie früher (unten, groß)
+            legend=alt.Legend(
+                title="Kategorie",
+                orient="bottom", 
+                titleFontSize=14,
+                labelFontSize=12,
+                symbolSize=150,
+                padding=20
+            )
+        ),
+        tooltip=["Kategorie", "Anzahl"]
+    ).properties(
+        width=300,  
+        height=300, 
+        background="transparent" 
+    ).configure_view(
+        stroke=None 
+    )
+
+    # Rückgabe (Chart ohne Text innen, Total separat für Text drunter)
+    return {
+        "chart": chart.to_dict(),
+        "weather": weather,
+        "total": int(total_count)
+    }

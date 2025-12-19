@@ -16,11 +16,12 @@ function App() {
     hour: 12,
   });
 
-  // Neu: Wetter ist kein Filter mehr, sondern eine Info aus den Daten
   const [Weather, setWeather] = useState("Unbekannt");
 
   const [rawData, setRawData] = useState([]);
   const [loading, setLoading] = useState(false);
+
+  const [totalCount, setTotalCount] = useState(0);
 
   useEffect(() => {
     fetch("http://127.0.0.1:8000/locations")
@@ -57,14 +58,10 @@ function App() {
       try {
         const response = await fetch(url);
         const json = await response.json();
-        setRawData(json);
+        setRawData(json.chart);
 
-        // Wetter aus dem ersten Datensatz extrahieren, falls vorhanden
-        if (json && json.length > 0 && json[0].Wetter) {
-          setWeather(json[0].Wetter);
-        } else {
-          setWeather("Keine Daten / Unbekannt");
-        }
+        setWeather(json.weather || "Unbekannt");
+        setTotalCount(json.total || 0);
       } catch (err) {
         console.error(err);
         setRawData([]);
@@ -102,6 +99,7 @@ function App() {
           selectedHour={activeParams.hour}
           Weather={Weather}
           isLoading={loading}
+          totalCount={totalCount}
         />
         <Sidebar
           locationList={locationList}
