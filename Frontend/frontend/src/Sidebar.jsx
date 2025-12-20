@@ -23,6 +23,7 @@ export const Sidebar = ({
   isAllDay,
   setIsAllDay,
   onRefresh,
+  onReset,
 }) => {
   const handleSliderChange = (event, newValue) => {
     setSelectedHour(newValue);
@@ -32,7 +33,7 @@ export const Sidebar = ({
     <aside className="sidebar">
       <Typography
         variant="h5"
-        sx={{ mb: 3, fontWeight: "bold", color: "black" }}
+        sx={{ mb: 5, fontSize: "1.1rem", fontWeight: "bold" }}
       >
         Filter & Einstellungen
       </Typography>
@@ -116,7 +117,7 @@ export const Sidebar = ({
         />
       </Box>
 
-      {/*Datenabfrage-Knopf Kalendersymbol */}
+      {/*Button zum Visualisierung aktualisieren */}
       <Button
         variant="contained"
         sx={{
@@ -132,6 +133,24 @@ export const Sidebar = ({
         onClick={onRefresh}
       >
         Visualisierung aktualisieren
+      </Button>
+
+      {/*Button zum Visualisierung zurücksetzen auf Default */}
+      <Button
+        variant="contained"
+        sx={{
+          p: 1.5,
+          mt: 2,
+          backgroundColor: "#f44242ff",
+          color: "white",
+          "&:hover": {
+            backgroundColor: "#ad2929ff",
+          },
+        }}
+        fullWidth
+        onClick={onReset}
+      >
+        Reset auf Default
       </Button>
     </aside>
   );
