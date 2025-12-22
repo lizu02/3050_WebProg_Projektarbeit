@@ -1,14 +1,16 @@
+/* Grundlayout für gesamte Seite*/
 html,
 body {
   height: 100%;
-  margin: 0;
+  margin: 0; /*keine Standardabstände*/
   font-family: Roboto, sans-serif;
 }
 
+/*Hauptcontainer mit Grid-Layout und einzelnen Darstellungsbereichen*/
 .App {
   display: grid;
   min-height: 100vh;
-  grid-template-rows: 50px 1fr 25px;
+  grid-template-rows: 50px 1fr 25px; /*Aufteilung Header-Inhalt-Footer: pixel = fixe grösse, fraction füllt den restlichen Platz*/
   grid-template-columns: 1fr;
   grid-template-areas:
     "header"
@@ -16,6 +18,7 @@ body {
     "footer";
 }
 
+/*Zusammenstellung Hauptinhalt und Sidebar*/
 .main-content-wrapper {
   grid-area: main-wrapper;
   display: grid;
@@ -35,9 +38,9 @@ body {
 .sidebar {
   grid-area: sidebar;
   background-color: #f0f0f0;
-  padding: 15px;
+  padding: 20px;
   border-left: 1px solid #ddd;
-  overflow-y: auto;
+  overflow-y: auto; /*Vertikales scrollen möglich, falls nötig wegen Screengrösse*/
   overflow-x: hidden; /* Horizontales Scrollen der Sidebar wird dadurch verhindert */
   color: black;
 }
@@ -46,7 +49,6 @@ body {
   grid-area: mainarea;
   padding: 20px;
   background-color: white;
-  gap: 20px;
 }
 
 .footer {
@@ -60,11 +62,12 @@ body {
   font-size: 0.8em;
 }
 
+/*Box um das Diagramm herum*/
 .diagramm-box {
   height: 85%;
   border: 1px solid #ddd;
   border-radius: 4px;
   padding: 15px;
   background-color: #fff;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  box-shadow: 0px 2px 4px #0000003a;
 }

@@ -12,6 +12,7 @@ import {
   Checkbox,
 } from "@mui/material";
 
+/*Sidebar mit allen Filtern, Buttons und Einstellungen*/
 export const Sidebar = ({
   locationList,
   selectedLocationID,
@@ -25,6 +26,7 @@ export const Sidebar = ({
   onRefresh,
   onReset,
 }) => {
+  /*Uhrzeit wird automatisch via Slider aktualisiert*/
   const handleSliderChange = (event, newValue) => {
     setSelectedHour(newValue);
   };
@@ -67,7 +69,9 @@ export const Sidebar = ({
           type="date"
           value={selectedDate}
           onChange={(e) => setSelectedDate(e.target.value)}
-          InputLabelProps={{ shrink: true }}
+          InputLabelProps={{
+            shrink: true,
+          }} /*Durchgestrichen, weil befehl in künftigen MUI-Versionen nicht mehr verwendet wird*/
           sx={{
             backgroundColor: "white",
           }}
@@ -75,7 +79,7 @@ export const Sidebar = ({
       </FormControl>
 
       {/* Slider für die Uhrzeit*/}
-      <Box sx={{ width: "100%", mb: 4, px: 1 }}>
+      <Box sx={{ width: "100%", mb: 4 }}>
         <Typography id="hour-slider-label" gutterBottom sx={{ color: "black" }}>
           Uhrzeit (Stunde): <strong>{selectedHour}:00 Uhr</strong>
         </Typography>
@@ -100,6 +104,7 @@ export const Sidebar = ({
         </Box>
       </Box>
 
+      {/*Checkbox ob ganzer Tag*/}
       <Box sx={{ mb: 3 }}>
         <FormControlLabel
           control={

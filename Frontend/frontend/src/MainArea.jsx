@@ -1,4 +1,4 @@
-import { Typography, Box } from "@mui/material";
+import { Typography, Box, Paper } from "@mui/material";
 import { Diagramm } from "./Diagramm";
 
 export const MainArea = ({
@@ -7,7 +7,7 @@ export const MainArea = ({
   selectedDate,
   selectedHour,
   isAllDay,
-  Weather,
+  weather,
   totalCount,
 }) => (
   <main className="mainarea">
@@ -18,6 +18,8 @@ export const MainArea = ({
       Wie war der Anteil Kinder vs. Erwachsene am Schweizer Nationalfeiertag um
       12:00 im Jahr 2022 an der Bahnhofstrasse (Mitte) in Zürich?
     </Typography>
+
+    {/*Container für das Diagramm*/}
     <Box className="diagramm-box" sx={{ p: 2, pl: 5 }}>
       <Typography
         variant="h6"
@@ -25,7 +27,7 @@ export const MainArea = ({
       >
         Visualisierung Kinder- vs. Erwachsenenanteil
       </Typography>
-
+      {/*Aktuelle Filter anzeigen*/}
       <Typography
         variant="body2"
         color="text.secondary"
@@ -48,10 +50,19 @@ export const MainArea = ({
         )}
         <br />
         <br />
-        Wetter: <strong>{Weather}</strong>
+        Wetter: <strong>{weather}</strong>
       </Typography>
 
-      <Diagramm data={data} total={totalCount} />
+      {/*Diagramm-Komponente*/}
+      {totalCount === 0 ? (
+        <Paper sx={{ p: 3, textAlign: "center", backgroundColor: "#f5f5f5" }}>
+          <Typography color="text.secondary">
+            Keine Daten für die aktuelle Filterauswahl vorhanden.
+          </Typography>
+        </Paper>
+      ) : (
+        <Diagramm data={data} total={totalCount} />
+      )}
     </Box>
   </main>
 );

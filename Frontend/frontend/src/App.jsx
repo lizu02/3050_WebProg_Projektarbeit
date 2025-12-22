@@ -18,17 +18,17 @@ function App() {
     allDay: false,
   });
 
-  const [Weather, setWeather] = useState("Unbekannt");
-  const [rawData, setRawData] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [totalCount, setTotalCount] = useState(0);
+  const [weather, setWeather] = useState("Unbekannt"); //Wetterzustand aus Backend holen
+  const [rawData, setRawData] = useState([]); //Rohdaten für das Diagramm
+  const [totalCount, setTotalCount] = useState(0); //Gesamtzahl der Fussgänger
 
+  /*Einmal alle Standorte laden beim Start*/
   useEffect(() => {
     fetch("http://127.0.0.1:8000/locations")
       .then((res) => res.json())
       .then((data) => {
-        console.log("Orte geladen:", data);
         setLocationList(data);
+        /*Auf Default-Standort und Werte setzten*/
         if (data.length > 0) {
           const firstID = data[0].location_id;
           setSelectedLocationID(firstID);
@@ -42,41 +42,39 @@ function App() {
       .catch((err) => console.error("Fehler beim Laden der Orte:", err));
   }, []);
 
+  /*Diagrammdaten werden geladen, wenn Änderung via Filter geschieht*/
   useEffect(() => {
-    if (!activeParams.id) return;
+    if (!activeParams.id) return; // Abbruch falls kein Standort gesetzt
 
     const fetchData = async () => {
-      setLoading(true);
-
+      /*URL mit den richtigen Parameteren zusammenbauen*/
       const url = new URL("http://127.0.0.1:8000/data");
       url.searchParams.append("location_id", activeParams.id);
       url.searchParams.append("date", activeParams.date);
       url.searchParams.append("hour", activeParams.hour);
       url.searchParams.append("all_day", activeParams.allDay);
 
-      console.log("Fetching:", url.toString());
-
       try {
         const response = await fetch(url);
         const json = await response.json();
-        setRawData(json.chart);
 
+        setRawData(json.chart); //Diagrammdaten
+
+        /*Zusatzinfos zu Daten*/
         setWeather(json.weather || "Unbekannt");
         setTotalCount(json.total || 0);
       } catch (err) {
         console.error(err);
         setRawData([]);
         setWeather("-");
-      } finally {
-        setLoading(false);
       }
     };
 
     fetchData();
   }, [activeParams]);
 
+  /*Werte der Filter in Sidebar werden übernommen durch Button-Klick*/
   const handleRefresh = () => {
-    console.log("Button gedrückt! Übernehme Werte...");
     setActiveParams({
       id: selectedLocationID,
       date: selectedDate,
@@ -85,6 +83,7 @@ function App() {
     });
   };
 
+  /*Werte der Filter in Sidebar werden wieder auf Standard-Frage Default zurückgesetzt*/
   const handleReset = () => {
     const mitte =
       locationList.find((l) => l.location_name.includes("(Mitte)")) ||
@@ -103,6 +102,7 @@ function App() {
     });
   };
 
+  /*Akuteller Standort-Name*/
   const currentLocationName =
     locationList.find((l) => l.location_id === activeParams.id)
       ?.location_name || "Lade...";
@@ -118,8 +118,7 @@ function App() {
           selectedDate={activeParams.date}
           selectedHour={activeParams.hour}
           isAllDay={activeParams.allDay}
-          Weather={Weather}
-          isLoading={loading}
+          weather={weather}
           totalCount={totalCount}
         />
         <Sidebar
