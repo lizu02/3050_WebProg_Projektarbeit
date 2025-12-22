@@ -19,7 +19,9 @@ Das Frontend funktioniert mit folgenden Technologien:
 - Material UI (MUI) für das Interface Design
 - Vega / Vega-Embed für Datenvisualisierungen.
   HINWEIS: Mit der Vega-react Bibliothek konnte keine Grafik aufgesetzt werden, da wohl ein Versionen-Problem vorlag. Nach Konsultation von KI wurde empfohlen stattdessen die Vega-embed Bibliothek für die Diagrammerstellung zu verwenden, was nun auch umgesetzt wurde.
-  Das Backend funkioniert mit folgenden Technologien:
+
+Das Backend funkioniert mit folgenden Technologien:
+
 - Python (FastAPI)
 - Pandas (Datenverarbeitung im Arbeitsspeicher)
 - Uvicorn (ASGI-Server)
@@ -55,7 +57,7 @@ Folgende Programme sollten auf Ihrem Rechner installiert sein:
 3. Wähle in der Sidebar einen Standort (z.B. "Bahnhofstrasse Nord").
 4. Wähle ein Datum (die Datenbasis umfasst den Zeitraum vom 29.09.2021 bis 30.07.2025).
 5. Nutze den Slider, um die genaue Uhrzeit zu wählen (immer ganze Stunden). Alternativ kann die Checkbox "Ganzer Tag" aktiviert werden, um das Verhältnis über einen ganzen Tag zu betrachten.
-6. Klicke auf den Button «Visualisierung aktualisieren», um die Daten abzurufen.
+6. Klicke auf den Button «Visualisierung aktualisieren», um die Daten abzurufen bzw. das Diagramm zu aktualisieren.
 7. Mit dem Button "Zurücksetzten auf Default" wird wieder der Ausgangszustand und somit die Grundfragestellung angezeigt.
 
 # Autoren: Jan Rüdisühli & Livio Zurflüh
