@@ -46,7 +46,7 @@ Folgende Programme sollten auf Ihrem Rechner installiert sein:
 7. Zweites Terminal öffnen und in das Frontend-Verzeichnis wechseln (cd Frontend) und gleich nochmals (cd frontend)
 8. Abhängigkeiten installieren: npm install
 9. Im selben Frontend-Verzeichnis die Applikation starten: npm run dev
-   Wichtig: Das Frontend muss auf dem Port «http://localhost:5173» laufen. Ansonsten werden Anfragen auf das Backend nicht akzeptiert.
+   Wichtig: Das Frontend muss auf dem Port «http://localhost:5173» laufen. Ansonsten werden Anfragen an das Backend nicht akzeptiert.
 
 # Hinweise zur Nutzung
 
@@ -56,6 +56,6 @@ Folgende Programme sollten auf Ihrem Rechner installiert sein:
 4. Wähle ein Datum (die Datenbasis umfasst den Zeitraum vom 29.09.2021 bis 30.07.2025).
 5. Nutze den Slider, um die genaue Uhrzeit zu wählen (immer ganze Stunden). Alternativ kann die Checkbox "Ganzer Tag" aktiviert werden, um das Verhältnis über einen ganzen Tag zu betrachten.
 6. Klicke auf den Button «Visualisierung aktualisieren», um die Daten abzurufen.
-7. Mite dem Button "Zurücksetzten auf Default" wird wieder der Ausgangszustand und somit die Grundfragestellung angezeigt.
+7. Mit dem Button "Zurücksetzten auf Default" wird wieder der Ausgangszustand und somit die Grundfragestellung angezeigt.
 
 # Autoren: Jan Rüdisühli & Livio Zurflüh

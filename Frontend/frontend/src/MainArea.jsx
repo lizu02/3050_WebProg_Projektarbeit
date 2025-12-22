@@ -15,7 +15,7 @@ export const MainArea = ({
       Fokusfrage (Default-Einstellung):
     </Typography>
     <Typography variant="h6" sx={{ mb: 3, fontSize: "1.1rem" }}>
-      Wie war der Anteil Kinder vs. Erwachsene am schweizer Nationalfeiertag um
+      Wie war der Anteil Kinder vs. Erwachsene am Schweizer Nationalfeiertag um
       12:00 im Jahr 2022 an der Bahnhofstrasse (Mitte) in Zürich?
     </Typography>
     <Box className="diagramm-box" sx={{ p: 2, pl: 5 }}>

@@ -34,7 +34,7 @@ function App() {
           setSelectedLocationID(firstID);
           setActiveParams({
             id: firstID,
-            date: "2021-10-15",
+            date: "2022-08-01",
             hour: 12,
           });
         }

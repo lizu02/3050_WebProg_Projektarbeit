@@ -42,7 +42,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Endpunkte
+# Endpunkte definieren
 
 @app.get("/")
 def root():
@@ -55,7 +55,7 @@ def root():
 @app.get("/locations")
 def get_locations():
     """Liefert die Liste aller Orte für das Dropdown-Menü"""
-    # Wir nehmen nur ID und Name und entfernen Doppelte
+    # Nur ID und Name nehmen und doppelte Werte entfernen
     locations = df[['location_id', 'location_name']].drop_duplicates()
     locations = locations.sort_values('location_name')
     return locations.to_dict(orient="records")
@@ -72,7 +72,7 @@ def get_data(location_id: int, date: str, hour: int, all_day: str = "false"):
         (df["timestamp"].dt.date.astype(str) == date)
     )
 
-    # Wenn NICHT ganzer Tag, dann auch nach Stunde filtern
+    # Wenn nicht ganzer Tag, dann auch nach Stunde filtern
     if not is_all_day:
         mask = mask & (df["timestamp"].dt.hour == hour)
     
@@ -93,7 +93,7 @@ def get_data(location_id: int, date: str, hour: int, all_day: str = "false"):
     total_count = filtered["pedestrians_count"].sum()
     
 # Kleinen DataFrame speziell für das Diagramm bauen
-# Hier legen wir die Namen "Erwachsene" und "Kinder" fest (das ersetzt dein rename_map)
+# Namen "Erwachsene" und "Kinder" festlegen
     chart_df = pd.DataFrame([
         {"Kategorie": "Erwachsene", "Anzahl": adults},
         {"Kategorie": "Kinder", "Anzahl": children}
@@ -108,7 +108,6 @@ def get_data(location_id: int, date: str, hour: int, all_day: str = "false"):
         color=alt.Color(
             "Kategorie", 
             scale=alt.Scale(range=["#1976d2", "#ed6c02"]), 
-            # Hier stylen wir die Legende exakt wie früher (unten, groß)
             legend=alt.Legend(
                 title="Kategorie",
                 orient="bottom", 
@@ -127,7 +126,7 @@ def get_data(location_id: int, date: str, hour: int, all_day: str = "false"):
         stroke=None 
     )
 
-    # Rückgabe (Chart ohne Text innen, Total separat für Text drunter)
+    # Rückgabe Diagramm
     return {
         "chart": chart.to_dict(),
         "weather": weather,
